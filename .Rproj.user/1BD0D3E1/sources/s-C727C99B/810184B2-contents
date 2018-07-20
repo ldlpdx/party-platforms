@@ -1,0 +1,34 @@
+library(ggplot2)
+library(tidytext)
+library(topicmodels)
+library(tm)
+library(dplyr)
+library(wordcloud)
+library(RColorBrewer)
+
+platforms <- read.csv("US-parties-platforms.csv", header = TRUE, stringsAsFactors = FALSE)
+
+platform_words <- platforms %>%
+  group_by(party, year) %>%
+  unnest_tokens(word, description)
+
+data(stop_words)
+
+platform_words <- platform_words %>%
+  anti_join(stop_words, by = "word")
+
+frequency <- platform_words %>%
+  group_by(party) %>%
+  count(word, sort = TRUE)
+
+proportions <- frequency %>% 
+  group_by(party) %>% 
+  mutate(proportion = n / sum(n)) %>%
+  select(-n) 
+
+
+
+  spread(author, proportion) %>%
+  gather(author, proportion, `Brontë Sisters`:`H.G. Wells`)
+
+cor.test(data = proportions[proportions$party == "Democrat",], ~ proportion + "Republican")
